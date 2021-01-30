@@ -1,0 +1,149 @@
+org 100h        
+
+.data
+
+array1 db 2, 2, 2, 2
+array2 db 2, 2, 2, 2
+
+array db 8 dup(0)
+
+size dw 8
+inSize dw 0
+
+dup db 0
+num dw 0
+
+.code
+proc main
+ call merge   
+ call bubbleSort  
+ call removeDuplicates 
+ call printArray 
+    ret
+main endp
+
+proc merge ;;proc merge merges the two array to a new array
+ ;; in merge proc, we use 'di' register as a counter for the loop
+ mov di,0
+ loopM1: ;;loopM1: is responisble for adding the first to array to the new array
+  cmp di,4
+  je loopM1end
+             
+  mov bl,array1[di]
+  mov array[di],bl
+  inc di
+  jmp loopM1
+             
+  loopM1end:
+  
+    mov di,0
+     
+    loopM2: ;;loopM2: is responsible for adding the second array to the new array
+    cmp di,4
+    je loopM2end
+             
+    mov bl,array2[di]
+    mov array[di+4],bl
+    inc di
+    jmp loopM2
+             
+    loopM2end:
+        ret 
+ 
+merge endp        
+
+proc bubbleSort ;;proc bublesort creates sorts the new array using the bubble sort algorithm
+    
+ mov si,0 ;; si hold the index of current element and loop  
+ mov cx,size                              
+ sub cx,1 ;;cx will be size-1    
+     
+ sort: ;;check elements at si and si+1 or jump to next: if reached the end of array
+  cmp si,cx          
+  jz next
+  mov bl,array[si] ;;bl hold the first element being compared 
+  mov bh,array[si+1] ;;bh hold the second element being compared
+  cmp bl,bh           
+  ja exchange
+  add si,1 ;;increase the si and start the next loop          
+  jmp sort
+ exchange: ;;exchange: swaps two elements of index si and si+1 thenjumps back to sort:
+  mov array[si+1],bl
+  mov array[si],bh
+  add si,1
+  jmp sort        
+ next: ;;next: starts the bubble sort loop from the next element or exit proc if all array is sorted
+  mov si,0            
+  sub cx,1            
+  cmp cx,0
+  jnz sort
+  
+bubbleSort endp
+
+
+
+proc removeDuplicates ;;proc removeDuplicates creates a new array that does not have duplicte elements from a sorted array
+
+ mov si, 0
+ loop1:
+  cmp si,size         ; to check we didn't reach the end of array
+  je loop1end
+  mov dup, 0          ; set duplicates equal 0 at each itration
+  mov inSize, 0       ; at which point should we start
+             
+  add insize, si     
+  inc insize
+  mov di,inSize
+  mov bl, array[si]  
+                
+   loop2:
+   cmp di,size
+   je loop2end
+             
+   cmp bl, array[di]
+   jne continue       ; if they are not duplicates continue
+             
+    duplicate:
+     inc dup          ; otherwise increment dup by one
+             
+    continue:
+     inc di
+     jmp loop2
+             
+    loop2end:         
+     mov di, num
+     mov bh, dup
+     cmp bh, 0                    ; check if there is duplicates
+     jne loop2endCont             ; if not don't add it
+     mov bl,array[si]             ; if no duplicates found add it to orderedarray
+     mov array[di],bl
+     inc num
+    loop2endCont:
+     inc si
+     jmp loop1
+          
+    loop1end:
+     mov di, num
+     mov array[di], '$'   ; at the end add doller sign at the end to denote orderedarray end
+     
+removeDuplicates endp
+
+
+
+proc printArray                  ;print array elements 
+    
+   mov di,0
+   loop3:
+    cmp di,num
+    je loop3end
+             
+    add array[di], 30h
+    inc di
+    jmp loop3
+             
+    loop3end:
+     mov ah , 09h
+     mov dx , offset array
+     int 21h
+        
+printArray endp
